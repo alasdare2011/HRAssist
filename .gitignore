@@ -1,0 +1,91 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+*.pyo
+*.sqlite3
+db.sqlite3
+
+# Django migrations
+**/migrations/
+
+# Media folder for user uploads
+media/
+
+# Static files
+staticfiles/
+static/
+
+# Python virtual environment
+venv/
+.env
+
+# Python site-packages (if accidentally added)
+site-packages/
+
+# Ignore Python wheels
+*.whl
+
+# Docker-specific files
+docker-compose.yml
+Dockerfile
+
+# PostgreSQL
+pg_data/
+postgres_data/
+*.pgsql
+*.pgdump
+
+# PostgreSQL logs and runtime files
+pg_log/
+pg_stat_tmp/
+pg_xlog/
+pg_dynshmem/
+pg_notify/
+pg_replslot/
+pg_serial/
+pg_snapshots/
+pg_subtrans/
+pg_twophase/
+pg_wal/
+pg_worker_tmp/
+
+# Secrets
+.env
+*.env
+
+# Node.js (for front-end assets if applicable)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Coverage reports
+htmlcov/
+.coverage
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+
+# Pytest
+.pytest_cache/
+
+# Python wheels
+*.whl
+
+# Editor-specific files
+.vscode/
+.idea/
+*.swp
