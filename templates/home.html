@@ -8,6 +8,11 @@
     <p class="lead">Your go-to solution for human resource management.</p>
     <hr class="my-4">
     <p>Manage your HR needs effortlessly.</p>
-    <a class="btn btn-primary btn-lg" href="#" role="button">Log In</a>
+    {% if user.is_authenticated %}
+        <p>Hi {{ user.email }}</p>
+    {% else %}
+        <a class="btn btn-primary btn-lg" href="{% url 'login' %}" role="button">Log In</a>
+    {% endif %}
+
 </div>
 {% endblock %}
