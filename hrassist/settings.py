@@ -38,9 +38,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "employee_time_management.apps.EmployeeTimeManagementConfig",
     # Local
     "users.apps.UsersConfig",
+    "employee_time_management.apps.EmployeeTimeManagementConfig",
 ]
 
 MIDDLEWARE = [
@@ -58,7 +58,7 @@ ROOT_URLCONF = "hrassist.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
