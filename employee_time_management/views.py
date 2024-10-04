@@ -112,6 +112,7 @@ def employee_info_view(request):
     return render(request, "employeeInfo.html", context)
 
 
+@login_required(login_url="/accounts/login/")
 def hr_info_view(request):
     """
     View to display human resource information for staff, including attendance, vacation, overtime,
@@ -147,7 +148,7 @@ def hr_info_view(request):
     today = datetime.date.today()
     user1 = Staff.objects.get(user_id=user_id)
     is_owner = user1.getIsOwner()
-    is_super = user.is_superuser
+    is_super = user.is_superuser()
     is_manager = user1.getIsManager()
     is_employee = user1.getIsEmployee()
     if is_manager or is_employee:
@@ -225,3 +226,182 @@ def hr_info_view(request):
         "is_super": is_super,
     }
     return render(request, "hrInfo.html", context)
+
+
+@login_required(login_url="/accounts/login/")
+def time_off_request_view(request):
+    """
+    Handles the time-off request process for an employee.
+
+    This view allows an employee to submit a vacation request by filling out a form with
+    the start date, end date, unpaid time, and overtime to be used during their vacation.
+
+    The view performs several validation checks before submitting the request:
+    - Ensures the user is an employee.
+    - Checks if the entered date range is valid.
+    - Ensures the user has enough available vacation time, overtime, or unpaid time.
+    - Checks if the user has already requested or been approved for the selected vacation dates.
+
+    If the validation passes, a vacation request is created in the database and a success message is shown.
+    If validation fails, an appropriate error message is displayed, and the form is rendered again with the error.
+
+    Parameters:
+    - request: The HTTP request object that contains the POST data with the form submission.
+
+    Returns:
+    - A rendered time-off form if the request is a GET request or if validation fails.
+    - On a successful form submission, the form is submitted, and a success message is displayed.
+
+    Validation errors include:
+    - Using too much unpaid time or overtime.
+    - Overtime exceeding the saved overtime available to the employee.
+    - Invalid date ranges.
+    - Vacation hours exceeding the allowed vacation time.
+    - Conflicts with already submitted or approved vacations.
+    """
+    user = request.user
+    user1 = Staff.objects.get(user=user)
+    if not user1.getIsEmployee():
+        return redirect("employee")
+    if request.method == "POST":
+        dept = user1.dept
+        vacation_used = user1.vacation_used
+        saved_overtime = user1.overtime_hours
+        allowed_hours = annual_vacation(user1)
+        is_employee = user1.is_employee
+        form = TimeOffForm(request.POST)
+        start_month = int(request.POST["start_date_month"])
+        start_day = int(request.POST["start_date_day"])
+        start_year = int(request.POST["start_date_year"])
+        end_month = int(request.POST["end_date_month"])
+        end_day = int(request.POST["end_date_day"])
+        end_year = int(request.POST["end_date_year"])
+        unpaid_time = float(request.POST["unpaid_time"])
+        overtime = float(request.POST["overtime"])
+        start_date = datetime.date(start_year, start_month, start_day)
+        end_date = datetime.date(end_year, end_month, end_day)
+        vacation_hours = (
+            vacation_days_used(start_date, end_date) - unpaid_time - overtime
+        )
+        vacations = Vacations.objects.filter(name=user1).filter(request_denied=False)
+        if vacation_days_used(start_date, end_date) < unpaid_time + overtime:
+            messages.error(
+                request, "You have used either too much unpaid time or overtime."
+            )
+            form = TimeOffForm()
+            return render(
+                request,
+                "timeoff.html",
+                {"form": form, "is_employee": True},
+            )
+        if overtime > saved_overtime:
+            messages.error(request, "You do not have engough overtime.")
+            form = TimeOffForm()
+            return render(
+                request,
+                "timeoff.html",
+                {"form": form, "is_employee": True},
+            )
+        if not valid_date_range(start_date, end_date):
+            messages.error(request, "Please enter a valid date range")
+            form = TimeOffForm(request.POST)
+            return render(request, "timeoff.html", {"form": form, "is_employee": True})
+        if vacation_hours > allowed_hours:
+            messages.error(
+                request,
+                "You do not have enough hours to \
+            take this time off. You can take some as unpaid if you like.",
+            )
+            form = TimeOffForm()
+            return render(
+                request,
+                "timeoff.html",
+                {"form": form, "is_employee": True},
+            )
+        if only_apply_for_one_vacation_date(start_date, end_date, vacations):
+            messages.error(
+                request,
+                "You have already either applied of been \
+            approved for one of these dates. Please try again.",
+            )
+            form = TimeOffForm()
+            return render(
+                request,
+                "timeoff.html",
+                {"form": form, "is_employee": True},
+            )
+        else:
+            Vacations.objects.create(
+                name=user1,
+                start_date=start_date,
+                end_date=end_date,
+                dept=dept,
+                is_employee=is_employee,
+                total_hours_away=vacation_hours,
+                hours_unpaid=unpaid_time,
+                overtime=overtime,
+                request_submitted=True,
+            )
+            user1.overtime_hours = saved_overtime - overtime
+            user1.save()
+            messages.success(
+                request,
+                "Your vacation request was submitted successfully! If approved, this \
+            vacation will use "
+                + str(vacation_hours)
+                + " of your availabe \
+            vacation time hours.",
+            )
+    form = TimeOffForm()
+    return render(request, "timeoff.html", {"form": form, "is_employee": True})
+
+
+@login_required(login_url="/accounts/login/")
+def overtime_request_view(request):
+    user = request.user
+    user_id = user.id
+    today = datetime.date.today()
+    user1 = Staff.objects.get(user_id=user_id)
+    if not user1.getIsEmployee():
+        return redirect("employee")
+    if request.method == "POST":
+        dept = user1.dept
+        form = TimeOffForm(request.POST)
+        month = int(request.POST["ot_date_month"])
+        day = int(request.POST["ot_date_day"])
+        year = int(request.POST["ot_date_year"])
+        hours_ot = int(request.POST["hours"])
+        ot_date = datetime.date(year, month, day)
+        count = Overtime.objects.filter(name=user1).filter(date=ot_date).count()
+        if ot_date > today:
+            messages.error(request, "Please enter a valid date.")
+            form = ApplyForOT()
+            return render(
+                request, "ot_request.html", {"form": form, "is_employee": True}
+            )
+        elif count > 0:
+            messages.error(request, "You already applied for overtime on this date.")
+            form = ApplyForOT()
+            return render(
+                request,
+                "ot_request.html",
+                {"form": form, "is_employee": True},
+            )
+        else:
+            overtime = calculate_overtime_hours(hours_ot)
+            Overtime.objects.create(
+                name=user1, dept=dept, date=ot_date, ot_hours=overtime
+            )
+            messages.success(
+                request,
+                "Your overtime request was submitted successfully. If approved, you \
+            will receive "
+                + str(overtime)
+                + " hours of banked time off.",
+            )
+    form = ApplyForOT()
+    return render(
+        request,
+        "ot_request.html",
+        {"form": form, "is_employee": True},
+    )
