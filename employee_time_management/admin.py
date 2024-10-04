@@ -12,6 +12,8 @@ from .models import (
     SickDays,
     LeaveOfAbsense,
 )
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 
 class DivisionAdmin(admin.ModelAdmin):
@@ -72,6 +74,25 @@ class StaffAdmin(admin.ModelAdmin):
         "is_owner",
     ]  # Filters for the department, job title, and roles
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+
+        # Check if the user is a manager
+        if obj.is_manager:
+            # If is_manager is checked, add the staff to the Manager model if not already present
+            Manager.objects.get_or_create(name=obj, dept=obj.dept)
+        else:
+            # If is_manager is unchecked, remove the user from the Manager model if they exist
+            Manager.objects.filter(name=obj).delete()
+
+        # Check if the user is an owner
+        if obj.is_owner:
+            # If is_manager is checked, add the staff to the Manager model if not already present
+            Owner.objects.get_or_create(name=obj)
+        else:
+            # If is_manager is unchecked, remove the user from the Manager model if they exist
+            Owner.objects.filter(name=obj).delete()
+
 
 class ManagerAdmin(admin.ModelAdmin):
     list_display = [
@@ -90,6 +111,16 @@ class ManagerAdmin(admin.ModelAdmin):
     ]  # Filters for approval permissions
 
 
+# Define the signal handler
+@receiver(post_delete, sender=Manager)
+def uncheck_is_manager(sender, instance, **kwargs):
+    # Access the corresponding Staff object and uncheck is_manager
+    staff = instance.name  # The 'name' field in Manager refers to the Staff instance
+    if staff:
+        staff.is_manager = False
+        staff.save()  # Save the Staff object with is_manager unchecked
+
+
 class OwnerAdmin(admin.ModelAdmin):
     list_display = [
         "name",
@@ -101,6 +132,15 @@ class OwnerAdmin(admin.ModelAdmin):
         "approve_expense",
         "approve_any_staff",
     ]  # Filters for approval permissions
+
+
+# Define the signal handler for Owner
+@receiver(post_delete, sender=Owner)
+def uncheck_is_owner(sender, instance, **kwargs):
+    staff = instance.name  # The 'name' field in Owner refers to the Staff instance
+    if staff:
+        staff.is_owner = False
+        staff.save()  # Save the Staff object with is_owner unchecked
 
 
 class VacationsAdmin(admin.ModelAdmin):
