@@ -4,32 +4,89 @@
 {% block title %}Home{% endblock %}
 
 
-<div class="container">
 {% block content %}
-        <h3 class="text-center">This is a test message</h3>
-        <h3 class="text-center">Welcome: {{full_name}}</h3>
-        <h3 class="text-center">Your annual vacation is {{allowed_hours}} hours per year</h3>
-        <h3 class="text-center">You have used {{vacation_used}} hours</h3>
-        <h3 class="text-center">You have {{overtime}} hours of overtime banked</h3>
-        <h3 class="text-center">You have a total of {{total_hours_available}} hours remaining</h3>
-        <h3 class="text-center">Submitted Holiday Requests:</h3>
-        {% if is_employee %}
-        {% for vacation in submitted_holidays%}
-            <h3 class="text-center">{{vacation}}</h3>
-        {% endfor %}
-        <h3 class="text-center">Approved Holidays:</h3>
-        {% for vacation in approved_holidays %}
-            <h3 class="text-center">{{vacation}}</h3>
-        {% empty %}
-        <h3 class="text-center">No approved holiday requests</h3>
-        {% endfor %}
-        <h3 class="text-center">Denied Holidays:</h3>
-        {% for vacation in denied_holidays %}
-            <h3 class="text-center">{{vacation}}</h3>
-        {% empty %}
-        <h3 class="text-center">No denied holiday requests</h3>
-        {% endfor %}
-        {% endif %}
-{% endblock %}
+<div class="container mt-5">
+    <!-- Welcome Section -->
+    <div class="card text-center mb-4">
+        <div class="card-body">
+            <h3 class="card-title">Welcome, {{ full_name }}</h3>
+            <p class="card-text">Here is your current vacation and overtime information.</p>
+        </div>
+    </div>
+
+    <!-- Vacation and Overtime Information -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Annual Vacation</div>
+                <div class="card-body">
+                    <h4 class="card-title">{{ allowed_hours }} hours/year</h4>
+                    <p class="card-text">You have used <strong>{{ vacation_used }} hours</strong>.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Overtime</div>
+                <div class="card-body">
+                    <h4 class="card-title">{{ overtime }} hours</h4>
+                    <p class="card-text">You have <strong>{{ total_hours_available }} hours</strong> remaining.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Holiday Requests Section -->
+    <div class="card mb-4">
+        <div class="card-header text-center">
+            <h4>Holiday Requests</h4>
+        </div>
+        <div class="card-body">
+            <!-- Submitted Holidays -->
+            <h5 class="text-center mb-3">Submitted Holidays</h5>
+            {% if submitted_holidays %}
+                <ul class="list-group list-group-flush">
+                    {% for vacation in submitted_holidays %}
+                        <li class="list-group-item text-center">{{ vacation }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="alert alert-info text-center" role="alert">
+                    No submitted holiday requests.
+                </div>
+            {% endif %}
+            
+            <!-- Approved Holidays -->
+            <h5 class="text-center mt-4 mb-3">Approved Holidays</h5>
+            {% if approved_holidays %}
+                <ul class="list-group list-group-flush">
+                    {% for vacation in approved_holidays %}
+                        <li class="list-group-item text-center">{{ vacation }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="alert alert-success text-center" role="alert">
+                    No approved holiday requests.
+                </div>
+            {% endif %}
+            
+            <!-- Denied Holidays -->
+            <h5 class="text-center mt-4 mb-3">Denied Holidays</h5>
+            {% if denied_holidays %}
+                <ul class="list-group list-group-flush">
+                    {% for vacation in denied_holidays %}
+                        <li class="list-group-item text-center">{{ vacation }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="alert alert-danger text-center" role="alert">
+                    No denied holiday requests.
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+
     
