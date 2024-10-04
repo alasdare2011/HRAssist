@@ -1,0 +1,113 @@
+{% extends '_base.html' %}
+
+{% block title %}HR Info{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Update Anniversary Dates Section -->
+     {% if update_staff %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Update Anniversary Dates</h5>
+        </div>
+        <div class="card-body">
+            <form action="{% url 'hrinfo' %}" method="post">
+                {% csrf_token %}
+                <div class="form-group mb-3">
+                    <label for="SelectStaff">Select Staff</label>
+                    <select class="form-control" id="SelectStaff" name="Staff">
+                        {% for s in update_staff %}
+                        <option value="{{s}}" name="{{s}}">{{s}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" name="update">Update Anniversary Date</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Apply Unpaid Hours Section -->
+     {% if unpaid_hours %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Apply Unpaid Hours to Next Payroll</h5>
+        </div>
+        <div class="card-body">
+            <form action="{% url 'hrinfo' %}" method="post">
+                {% csrf_token %}
+                <div class="form-group mb-3">
+                    <label for="SelectStaffUnpaid">Select Staff</label>
+                    <select class="form-control" id="SelectStaffUnpaid" name="Staff">
+                        {% for s in unpaid_hours %}
+                        <option value="{{s}}" name="{{s}}">{{s}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" name="unpaid">Apply Unpaid Hours</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Staff Holiday Stats Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Staff Holiday Stats</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive"> <!-- Scrollable table on small screens -->
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">Vacation Hours Used</th>
+                            <th scope="col">Overtime Hours</th>
+                            <th scope="col">Unapplied Unpaid Hours</th>
+                            <th scope="col">Total Sick Days Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for staff in staff_stats %}
+                        <tr>
+                            <th scope="row">{{ staff.0 }} {{ staff.1 }}</th>
+                            <td>{{ staff.2 }}</td>
+                            <td>{{ staff.3 }}</td>
+                            <td>{{ staff.4 }}</td>
+                            <td>{{ staff.5 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Daily Attendance Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Staff Daily Attendance</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive"> <!-- Scrollable table on small screens -->
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for staff in daily_attendance %}
+                        <tr>
+                            <th scope="row">{{ staff.0 }}</th>
+                            <td>{{ staff.1 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
