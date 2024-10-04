@@ -1,0 +1,35 @@
+{% extends '_base.html' %}
+
+
+{% block title %}Home{% endblock %}
+
+
+<div class="container">
+{% block content %}
+        <h3 class="text-center">This is a test message</h3>
+        <h3 class="text-center">Welcome: {{full_name}}</h3>
+        <h3 class="text-center">Your annual vacation is {{allowed_hours}} hours per year</h3>
+        <h3 class="text-center">You have used {{vacation_used}} hours</h3>
+        <h3 class="text-center">You have {{overtime}} hours of overtime banked</h3>
+        <h3 class="text-center">You have a total of {{total_hours_available}} hours remaining</h3>
+        <h3 class="text-center">Submitted Holiday Requests:</h3>
+        {% if is_employee %}
+        {% for vacation in submitted_holidays%}
+            <h3 class="text-center">{{vacation}}</h3>
+        {% endfor %}
+        <h3 class="text-center">Approved Holidays:</h3>
+        {% for vacation in approved_holidays %}
+            <h3 class="text-center">{{vacation}}</h3>
+        {% empty %}
+        <h3 class="text-center">No approved holiday requests</h3>
+        {% endfor %}
+        <h3 class="text-center">Denied Holidays:</h3>
+        {% for vacation in denied_holidays %}
+            <h3 class="text-center">{{vacation}}</h3>
+        {% empty %}
+        <h3 class="text-center">No denied holiday requests</h3>
+        {% endfor %}
+        {% endif %}
+{% endblock %}
+</div>
+    
