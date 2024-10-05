@@ -377,14 +377,14 @@ def overtime_request_view(request):
             messages.error(request, "Please enter a valid date.")
             form = ApplyForOT()
             return render(
-                request, "ot_request.html", {"form": form, "is_employee": True}
+                request, "ot_requests.html", {"form": form, "is_employee": True}
             )
         elif count > 0:
             messages.error(request, "You already applied for overtime on this date.")
             form = ApplyForOT()
             return render(
                 request,
-                "ot_request.html",
+                "ot_requests.html",
                 {"form": form, "is_employee": True},
             )
         else:
@@ -402,6 +402,6 @@ def overtime_request_view(request):
     form = ApplyForOT()
     return render(
         request,
-        "ot_request.html",
+        "ot_requests.html",
         {"form": form, "is_employee": True},
     )
