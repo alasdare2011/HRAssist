@@ -1,0 +1,36 @@
+{% extends '_base.html' %}
+
+{% block title %}Approve Overtime{% endblock %}
+
+{% block content %}
+    <table class="table">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Approve Overtime</th>
+                <th scope="col">Deny Overtime</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for overtime in unapproved_overtime %}
+            <tr>
+                <th scope="row">{{overtime}}</th>
+                <td>
+                    <form action="{% url 'approve_overtime'%}" method="post">
+                        {% csrf_token %}
+                        <input class="btn btn-success" type="submit" name="{{overtime.id}}" value="Approve">
+                    </form>
+                </td>
+                <td>
+                    <form action="{% url 'approve_overtime'%}" method="post">
+                        {% csrf_token %}
+                        <input class="btn btn-success" type="submit" name="Deny {{overtime.id}}" value="Deny">
+                    </form>
+                </td>
+                {% empty%}
+                <h1>No Overtime To Approve</h1>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

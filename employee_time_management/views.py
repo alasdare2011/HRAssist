@@ -477,3 +477,105 @@ def manager_approve_time_off_view(request):
         "is_manager": is_manager,
     }
     return render(request, "approveTimeOff.html", context)
+
+
+@login_required(login_url="/accounts/login/")
+def manager_approve_overtime_view(request):
+    user = request.user
+    user_id = user.id
+    user1 = Staff.objects.get(user_id=user_id)
+    is_manager = user1.getIsManager()
+    if not is_manager:
+        return redirect("employee")
+    dept = user1.dept
+    staff = Staff.objects.filter(dept=dept).filter(is_employee=True)
+    unapproved_overtime = (
+        Overtime.objects.filter(dept=dept)
+        .filter(request_submitted=True)
+        .filter(is_employee=True)
+        .filter(request_approved=False)
+        .filter(request_denied=False)
+        .order_by("name")
+    )
+    if request.method == "POST":
+        overtime = request.POST.dict()
+        overtime_keys = list(overtime.keys())
+        overtime_id = overtime_keys[1]
+        if overtime_id.startswith("Deny"):
+            overtime_id = overtime_id.split(" ", 1)[1]
+            approved_overtime = Overtime.objects.get(id=overtime_id)
+            approved_overtime.request_denied = True
+            approved_overtime.save()
+            unapproved_overtime = (
+                Overtime.objects.filter(dept=dept)
+                .filter(request_submitted=True)
+                .filter(is_employee=True)
+                .filter(request_approved=False)
+                .filter(request_denied=False)
+                .order_by("name")
+            )
+            return HttpResponseRedirect(request.path_info)
+        else:
+            approved_overtime = Overtime.objects.get(id=overtime_id)
+            staff = approved_overtime.name
+            ot_hours = approved_overtime.ot_hours
+            staff.overtime_hours = staff.overtime_hours + ot_hours
+            staff.save()
+            approved_overtime.request_approved = True
+            approved_overtime.save()
+            unapproved_overtime = (
+                Overtime.objects.filter(dept=dept)
+                .filter(request_submitted=True)
+                .filter(is_employee=True)
+                .filter(request_approved=False)
+                .filter(request_denied=False)
+                .order_by("name")
+            )
+            return HttpResponseRedirect(request.path_info)
+
+    context = {"unapproved_overtime": unapproved_overtime, "is_manager": is_manager}
+    return render(request, "approveOT.html", context)
+
+
+@login_required(login_url="/accounts/login/")
+def manager_sick_days_view(request):
+    user = request.user
+    user_id = user.id
+    user1 = Staff.objects.get(user_id=user_id)
+    is_manager = user1.getIsManager()
+    if not is_manager:
+        return redirect("employee")
+    manager = Manager.objects.get(name=user1)
+    dept = user1.dept
+    staff = Staff.objects.filter(dept=dept).filter(is_employee=True)
+    if request.method == "POST":
+        date = request.POST["sickday"]
+        date_list = date.split("-")
+        dict_post = request.POST.dict()
+        staff1 = dict_post["Staff"].split(" ", 1)[0]
+        sick_staff1 = User.objects.get(username=staff1)
+        sick_staff = Staff.objects.get(user=sick_staff1)
+        dept = sick_staff.dept
+        sick_day_date = datetime.date(
+            int(date_list[0]), int(date_list[1]), int(date_list[2])
+        )
+        count = (
+            SickDays.objects.filter(name=sick_staff).filter(date=sick_day_date).count()
+        )
+        if count == 0:
+            SickDays.objects.create(
+                name=sick_staff,
+                date=sick_day_date,
+                dept=dept,
+                total_hours_away=8,
+                approved_by=manager,
+            )
+            messages.success(request, "Sick Day is approved.")
+            context = {"staff": staff}
+            return render(request, "approveSickDay.html", context)
+        else:
+            messages.error(
+                request, "Sick day for this employee already approved for this date."
+            )
+    context = {"staff": staff, "is_manager": is_manager}
+    return render(request, "approveSickDay.html", context)
