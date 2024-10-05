@@ -579,3 +579,47 @@ def manager_sick_days_view(request):
             )
     context = {"staff": staff, "is_manager": is_manager}
     return render(request, "approveSickDay.html", context)
+
+
+@login_required(login_url="/accounts/login/")
+def deptstats_view(request):
+    user = request.user
+    user_id = user.id
+    today = datetime.date.today()
+    user1 = Staff.objects.get(user_id=user_id)
+    is_owner = user1.getIsOwner()
+    if not is_owner:
+        return redirect("employee")
+    depts = Dept.objects.all().exclude(name="Human Resources")
+    deptstats = []
+    for dept in depts:
+        deptinfo = []
+        deptinfo.append(dept)
+        total_staff = Staff.objects.filter(dept=dept).filter(is_employee=True).count()
+        deptinfo.append(total_staff)
+        vacations = (
+            Vacations.objects.filter(dept=dept)
+            .filter(request_approved=True)
+            .filter(
+                Q(start_date__lte=datetime.date.today())
+                & Q(end_date__gte=datetime.date.today())
+            )
+            .count()
+        )
+        deptinfo.append(vacations)
+        sickdays = (
+            SickDays.objects.filter(dept=dept)
+            .filter(date=datetime.date.today())
+            .count()
+        )
+        deptinfo.append(sickdays)
+        staff_present = total_staff - vacations - sickdays
+        deptinfo.append(staff_present)
+        if staff_present < dept.min_staff:
+            deptinfo.append("Yes")
+        else:
+            deptinfo.append("No")
+        deptstats.append(deptinfo)
+
+    context = {"deptstats": deptstats, "is_owner": is_owner}
+    return render(request, "deptstats.html", context)

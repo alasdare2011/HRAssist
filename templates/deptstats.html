@@ -1,0 +1,31 @@
+{% extends '_base.html' %}
+
+{% block title %}Dept. Stats{% endblock %}
+
+{% block content %}
+    <br>
+    <h5>Daily Departmental manpower statistics:</h5>
+    <table class="table">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Total Staff</th>
+                <th scope="col">On Vacation</th>
+                <th scope="col">Away Sick</th>
+                <th scope="col">Staff Present</th>
+                <th scope="col">Department Understaffed</th>
+            </tr>
+        <tbody>
+            {% for dept in deptstats %}
+            <tr>
+                <th scope="row">{{dept.0}}</th>
+                <td>{{dept.1}}</td>
+                <td>{{dept.2}}</td>
+                <td>{{dept.3}}</td>
+                <td>{{dept.4}}</td>
+                <td>{{dept.5}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

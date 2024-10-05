@@ -18,4 +18,5 @@ urlpatterns = [
         name="approve_overtime",
     ),
     path("sickdays/", views.manager_sick_days_view, name="sickdays"),
+    path("deptstats/", views.deptstats_view, name="deptstats"),
 ]
