@@ -148,7 +148,7 @@ def hr_info_view(request):
     today = datetime.date.today()
     user1 = Staff.objects.get(user_id=user_id)
     is_owner = user1.getIsOwner()
-    is_super = user.is_superuser()
+    is_super = user.is_superuser
     is_manager = user1.getIsManager()
     is_employee = user1.getIsEmployee()
     if is_manager or is_employee:
@@ -405,3 +405,75 @@ def overtime_request_view(request):
         "ot_requests.html",
         {"form": form, "is_employee": True},
     )
+
+
+@login_required(login_url="/accounts/login/")
+def manager_approve_time_off_view(request):
+    user = request.user
+    user_id = user.id
+    user1 = Staff.objects.get(user_id=user_id)
+    is_manager = user1.getIsManager()
+    if not is_manager:
+        return redirect("employee")
+    dept = user1.dept
+    staff = Staff.objects.filter(dept=dept).filter(is_employee=True)
+    total_staff = staff.count()
+    min_staff = dept.min_staff
+    max_staff_off = total_staff - min_staff
+    unapproved_vacations = (
+        Vacations.objects.filter(dept=dept)
+        .filter(request_submitted=True)
+        .filter(is_employee=True)
+        .filter(request_approved=False)
+        .filter(request_denied=False)
+        .order_by("name")
+    )
+    approved_vacations = (
+        Vacations.objects.filter(dept=dept)
+        .filter(request_submitted=True)
+        .filter(is_employee=True)
+        .filter(request_approved=True)
+    )
+    vacations_with_conflicts = list_of_conflicing_dates(
+        unapproved_vacations, approved_vacations, max_staff_off
+    )
+    if request.method == "POST":
+        vacation = request.POST.dict()
+        vacation_keys = list(vacation.keys())
+        vacation_id = vacation_keys[1]
+        if vacation_id.startswith("Deny"):
+            vacation_id = vacation_id.split(" ", 1)[1]
+            approved_vacation = Vacations.objects.get(id=vacation_id)
+            approved_vacation.request_denied = True
+            approved_vacation.save()
+            overtime = approved_vacation.overtime
+            staff = approved_vacation.name
+            staff.overtime_hours = staff.overtime_hours + overtime
+            staff.save()
+            return HttpResponseRedirect(request.path_info)
+        else:
+            approved_vacation = Vacations.objects.get(id=vacation_id)
+            staff = approved_vacation.name
+            hours_away = approved_vacation.total_hours_away
+            unpaid_time = approved_vacation.hours_unpaid
+            staff.vacation_used = hours_away
+            staff.save()
+            staff.unpaid_time = staff.unpaid_time + unpaid_time
+            staff.save()
+            approved_vacation.request_approved = True
+            approved_vacation.save()
+            unapproved_vacations = (
+                Vacations.objects.filter(dept=dept)
+                .filter(request_submitted=True)
+                .filter(is_employee=True)
+                .filter(request_approved=False)
+                .filter(request_denied=False)
+                .order_by("name")
+            )
+            return HttpResponseRedirect(request.path_info)
+    context = {
+        "unapproved_vacations": unapproved_vacations,
+        "vacations_with_conflicts": vacations_with_conflicts,
+        "is_manager": is_manager,
+    }
+    return render(request, "approveTimeOff.html", context)

@@ -12,4 +12,9 @@ urlpatterns = [
     path(
         "approve_timeoff/", views.manager_approve_time_off_view, name="approve_timeoff"
     ),
+    path(
+        "approve_overtime/",
+        views.manager_approve_overtime_view,
+        name="approve_overtime",
+    ),
 ]

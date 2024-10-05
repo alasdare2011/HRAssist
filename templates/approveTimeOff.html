@@ -1,0 +1,24 @@
+{% extends '_base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Approve Time Off{% endblock %}
+
+{% block content%}
+
+    {% for vacation in vacations_with_conflicts %}
+        <h3 class="text-center">{{vacation.0}}</h3>
+            <h3 class="text-center">You will be shortstaffed on the following dates:</h3>
+            {% for conflict in vacation.1%}
+                <h3 class="text-center">{{conflict}}</h3>
+            {% empty %}
+                <h3 class="text-center">No conflicts. O.K to approve.</h3>
+            {% endfor %}
+        <form action="{% url 'approve_timeoff'%}" method="post">
+            {% csrf_token %}
+            <input type="submit" name="{{vacation.0.id}}" value="Approve" class="btn btn-success"/>
+            <input type="submit" name="Deny {{vacation.0.id}}" value="Deny" class="btn btn-success" />
+        </form>
+        {% empty%}
+        <h1>No Vactions To Approve</h1>
+    {% endfor %}
+    {% endblock %}
