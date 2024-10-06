@@ -3,22 +3,44 @@
 
 {% block title %}Approve Time Off{% endblock %}
 
-{% block content%}
-
-    {% for vacation in vacations_with_conflicts %}
-        <h3 class="text-center">{{vacation.0}}</h3>
-            <h3 class="text-center">You will be shortstaffed on the following dates:</h3>
-            {% for conflict in vacation.1%}
-                <h3 class="text-center">{{conflict}}</h3>
-            {% empty %}
-                <h3 class="text-center">No conflicts. O.K to approve.</h3>
-            {% endfor %}
-        <form action="{% url 'approve_timeoff'%}" method="post">
-            {% csrf_token %}
-            <input type="submit" name="{{vacation.0.id}}" value="Approve" class="btn btn-success"/>
-            <input type="submit" name="Deny {{vacation.0.id}}" value="Deny" class="btn btn-success" />
-        </form>
-        {% empty%}
-        <h1>No Vactions To Approve</h1>
-    {% endfor %}
-    {% endblock %}
+{% block content %}
+    <br>
+    <h5 class="text-center">Approve or Deny Time Off Requests</h5>
+    <div class="row">
+        {% for vacation in vacations_with_conflicts %}
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="card-title">{{ vacation.0.name }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if vacation.1 %}
+                        <h6 class="text-center text-danger">Shortstaffed on the following dates:</h6>
+                        <ul class="list-group list-group-flush">
+                            {% for conflict in vacation.1 %}
+                                <li class="list-group-item text-center">{{ conflict }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <h6 class="text-center text-success">No conflicts. OK to approve.</h6>
+                    {% endif %}
+                    <div class="d-flex justify-content-between mt-3">
+                        <form action="{% url 'approve_timeoff' %}" method="post">
+                            {% csrf_token %}
+                            <input type="submit" name="{{ vacation.0.id }}" value="Approve" class="btn btn-success">
+                        </form>
+                        <form action="{% url 'approve_timeoff' %}" method="post">
+                            {% csrf_token %}
+                            <input type="submit" name="Deny {{ vacation.0.id }}" value="Deny" class="btn btn-danger">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <h1 class="text-center">No Vacations to Approve</h1>
+        </div>
+        {% endfor %}
+    </div>
+{% endblock %}

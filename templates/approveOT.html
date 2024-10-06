@@ -3,34 +3,37 @@
 {% block title %}Approve Overtime{% endblock %}
 
 {% block content %}
-    <table class="table">
-        <thead class="thead-dark">
-            <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Approve Overtime</th>
-                <th scope="col">Deny Overtime</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for overtime in unapproved_overtime %}
-            <tr>
-                <th scope="row">{{overtime}}</th>
-                <td>
-                    <form action="{% url 'approve_overtime'%}" method="post">
-                        {% csrf_token %}
-                        <input class="btn btn-success" type="submit" name="{{overtime.id}}" value="Approve">
-                    </form>
-                </td>
-                <td>
-                    <form action="{% url 'approve_overtime'%}" method="post">
-                        {% csrf_token %}
-                        <input class="btn btn-success" type="submit" name="Deny {{overtime.id}}" value="Deny">
-                    </form>
-                </td>
-                {% empty%}
-                <h1>No Overtime To Approve</h1>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <br>
+    <h5>Approve or Deny Overtime Requests:</h5>
+    <div class="row">
+        {% for overtime in unapproved_overtime %}
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="card-title">{{ overtime.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        <strong>Requested Hours:</strong> {{ overtime.ot_hours }}<br>
+                        <strong>Date:</strong> {{ overtime.date }}<br>
+                    </p>
+                    <div class="d-flex justify-content-between">
+                        <form action="{% url 'approve_overtime' %}" method="post">
+                            {% csrf_token %}
+                            <input class="btn btn-success" type="submit" name="{{ overtime.id }}" value="Approve">
+                        </form>
+                        <form action="{% url 'approve_overtime' %}" method="post">
+                            {% csrf_token %}
+                            <input class="btn btn-danger" type="submit" name="Deny {{ overtime.id }}" value="Deny">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <h1>No Overtime to Approve</h1>
+        </div>
+        {% endfor %}
+    </div>
 {% endblock %}

@@ -4,30 +4,42 @@
 {% block title %}Approve SickDay{% endblock %}
 
 {% block content %}
-{% if messages %}
+    {% if messages %}
+        <div class="container mt-4">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+
     <div class="container mt-4">
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5>Approve SickDay</h5>
+            </div>
+            <div class="card-body">
+                <form action="{% url 'sickdays' %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="staff-select" class="form-label">Select Staff</label>
+                        <select id="staff-select" name="Staff" class="form-control">
+                            {% for s in staff %}
+                            <option value="{{ s }}" name="{{ s }}">{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sickday-date" class="form-label">Sick Day</label>
+                        <input id="sickday-date" class="form-control" type="date" name="sickday" required>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <input type="submit" class="btn btn-success" value="Approve SickDay">
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    {% endfor %}
-    </div>
-{% endif %}
-
-    <h5>Approve SickDay:</h5>
-    <form action="{% url 'sickdays' %}" method="post">
-        {% csrf_token %}
-        <select name="Staff" class="form-control">
-            {% for s in staff%}
-            <option value="{{s}}" name="{{s}}">{{s}}</option>
-            {% endfor %}
-        </select>
-        <input class="form-control" type="date" name="sickday" value="sickday" required>
-        <br><br>
-        <input type="submit" class="btn btn-success">
-    </form>
-
-
-
 {% endblock %}
