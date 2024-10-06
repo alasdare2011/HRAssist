@@ -13,18 +13,44 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">HR Assist</a>
+            <a class="navbar-brand" href="{% url 'home' %}">HR Assist</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">Home</a>
+                        <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Home</a>
+                    </li>
+                    {% if is_employee %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'timeoff' %}">Apply For Time Off</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Features</a>
+                        <a class="nav-link" href="{% url 'overtime' %}">Apply For Overtime</a>
                     </li>
+                    {% endif %}
+                    {% if is_manager %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'approve_timeoff' %}">Approve Vacation</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'approve_overtime' %}">Approve Overtime</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'sickdays' %}">Submit SickDay</a>
+                    </li>
+                    {% endif %}
+                    {% if is_owner %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'deptstats' %}">Dept Stats</a>
+                    </li>
+                    {% endif %}
+                    {% if is_super %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'hrinfo' %}">HR Info</a>
+                    </li>
+                    {% endif %}
                     {% if user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'logout' %}">Log Out</a>

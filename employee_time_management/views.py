@@ -23,12 +23,8 @@ from .utils import (
 )
 
 from .models import (
-    Division,
-    Allowed_vacation,
     Staff,
-    JobTitle,
     Manager,
-    Owner,
     Dept,
     Vacations,
     SickDays,
