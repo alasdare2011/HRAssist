@@ -354,6 +354,31 @@ def time_off_request_view(request):
 
 @login_required(login_url="/accounts/login/")
 def overtime_request_view(request):
+    """
+    Handles the overtime request process for an employee.
+
+    This view allows an employee to submit an overtime request by filling out a form with
+    the date and the number of overtime hours to be requested.
+
+    The view performs several validation checks before submitting the request:
+    - Ensures the user is an employee.
+    - Checks if the entered overtime date is valid (not in the future).
+    - Ensures the employee has not already applied for overtime on the same date.
+
+    If the validation passes, the overtime request is created in the database, and a success message is shown.
+    If validation fails, an appropriate error message is displayed, and the form is rendered again with the error.
+
+    Parameters:
+    - request: The HTTP request object that contains the POST data with the form submission.
+
+    Returns:
+    - A rendered overtime request form if the request is a GET request or if validation fails.
+    - On a successful form submission, the form is submitted, and a success message is displayed.
+
+    Validation errors include:
+    - Submitting an overtime request for a future date.
+    - Submitting multiple overtime requests for the same date.
+    """
     user = request.user
     user_id = user.id
     today = datetime.date.today()
@@ -405,6 +430,32 @@ def overtime_request_view(request):
 
 @login_required(login_url="/accounts/login/")
 def manager_approve_time_off_view(request):
+    """
+    Handles the time-off approval process for managers.
+
+    This view allows a manager to review and approve or deny time-off requests submitted by employees in their department.
+    The view displays unapproved vacation requests and checks for scheduling conflicts with already approved vacations.
+
+    The view performs several tasks:
+    - Ensures the user is a manager. If not, they are redirected to the employee page.
+    - Retrieves the staff in the manager's department and calculates the maximum number of employees that can be on vacation at once.
+    - Retrieves unapproved vacation requests and checks for conflicts with approved vacations.
+    - Allows the manager to approve or deny vacation requests. If a request is denied, the employee's overtime is returned to them.
+
+    Parameters:
+    - request: The HTTP request object that contains the POST data with the form submission.
+
+    Returns:
+    - A rendered vacation approval form with a list of unapproved vacations and vacation conflicts.
+    - After a POST request, it redirects back to the same page to display the updated list of unapproved vacations.
+
+    Actions:
+    - Approving a vacation: Marks the vacation as approved and updates the employee's vacation and unpaid time.
+    - Denying a vacation: Marks the vacation as denied and restores any overtime hours the employee had requested to use.
+
+    Validation errors include:
+    - None in this view, but the logic ensures that only managers can access the vacation approval process.
+    """
     user = request.user
     user_id = user.id
     user1 = Staff.objects.get(user_id=user_id)
@@ -477,6 +528,31 @@ def manager_approve_time_off_view(request):
 
 @login_required(login_url="/accounts/login/")
 def manager_approve_overtime_view(request):
+    """
+    Handles the overtime approval process for managers.
+
+    This view allows a manager to review and approve or deny overtime requests submitted by employees in their department.
+    The view displays unapproved overtime requests and allows the manager to either approve or deny each request.
+
+    The view performs several tasks:
+    - Ensures the user is a manager. If not, they are redirected to the employee page.
+    - Retrieves the staff in the manager's department and displays unapproved overtime requests.
+    - Allows the manager to approve or deny overtime requests. If a request is denied, no overtime hours are added to the employee's balance.
+
+    Parameters:
+    - request: The HTTP request object that contains the POST data with the form submission.
+
+    Returns:
+    - A rendered overtime approval form with a list of unapproved overtime requests.
+    - After a POST request, it redirects back to the same page to display the updated list of unapproved overtime requests.
+
+    Actions:
+    - Approving overtime: Marks the overtime as approved and adds the requested overtime hours to the employee's balance.
+    - Denying overtime: Marks the overtime as denied, and no overtime hours are added to the employee's balance.
+
+    Validation errors include:
+    - None in this view, but the logic ensures that only managers can access the overtime approval process.
+    """
     user = request.user
     user_id = user.id
     user1 = Staff.objects.get(user_id=user_id)
@@ -535,6 +611,31 @@ def manager_approve_overtime_view(request):
 
 @login_required(login_url="/accounts/login/")
 def manager_sick_days_view(request):
+    """
+    Handles the sick day approval process for managers.
+
+    This view allows a manager to approve sick days for employees in their department.
+    The manager selects an employee and enters the date for which the sick day is being requested.
+
+    The view performs several tasks:
+    - Ensures the user is a manager. If not, they are redirected to the employee page.
+    - Retrieves the list of employees in the manager's department.
+    - Allows the manager to submit a sick day request for an employee. If the request is valid, the sick day is recorded, and the employee is marked as being away for 8 hours.
+
+    Parameters:
+    - request: The HTTP request object that contains the POST data with the form submission.
+
+    Returns:
+    - A rendered sick day approval form listing employees in the manager's department.
+    - After a POST request, it either approves the sick day and displays a success message or shows an error message if the sick day for the selected date has already been approved.
+
+    Actions:
+    - Approving a sick day: Marks the employee as being away for 8 hours on the requested sick day.
+    - Preventing duplicate sick day requests: Ensures that an employee cannot be approved for the same sick day more than once.
+
+    Validation errors include:
+    - Preventing duplicate sick day approvals for the same employee on the same date.
+    """
     user = request.user
     user_id = user.id
     user1 = Staff.objects.get(user_id=user_id)
@@ -579,6 +680,34 @@ def manager_sick_days_view(request):
 
 @login_required(login_url="/accounts/login/")
 def deptstats_view(request):
+    """
+    Displays department statistics for the company owner.
+
+    This view provides an overview of the current staffing situation for each department,
+    excluding Human Resources. It shows the total number of staff, the number of staff on vacation,
+    the number of staff on sick leave, and how many staff are present. It also flags if the
+    present staff is below the department's minimum required staff level.
+
+    The view performs several tasks:
+    - Ensures the user is the company owner. If not, they are redirected to the employee page.
+    - Retrieves all departments except Human Resources.
+    - Calculates various statistics for each department, including total staff, vacations, sick days,
+      and whether the department is understaffed.
+
+    Parameters:
+    - request: The HTTP request object.
+
+    Returns:
+    - A rendered department statistics page displaying the following for each department:
+      total staff, vacations, sick days, present staff, and whether the department is understaffed.
+
+    Statistics calculated:
+    - Total staff: The number of employees in the department.
+    - Vacations: The number of employees on vacation today.
+    - Sick days: The number of employees on sick leave today.
+    - Present staff: The number of employees present at work (not on vacation or sick leave).
+    - Understaffed: A flag indicating whether the present staff is below the minimum required staff.
+    """
     user = request.user
     user_id = user.id
     today = datetime.date.today()
