@@ -6,4 +6,5 @@ typing-extensions==4.12.2
 django-crispy-forms==2.0
 crispy-bootstrap5
 django-anymail
+python-decouple
 

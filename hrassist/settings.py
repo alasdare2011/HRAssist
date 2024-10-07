@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 from django.contrib.messages import constants as message_constants
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     "employee_time_management.apps.EmployeeTimeManagementConfig",
     "crispy_forms",
     "crispy_bootstrap5",
+    "anymail",  # Add Anymail to your installed apps
 ]
 
 MIDDLEWARE = [
@@ -95,6 +97,16 @@ DATABASES = {
     }
 }
 
+# Anymail settings for Mailgun
+ANYMAIL = {
+    "MAILGUN_API_KEY": config(
+        "MAILGUN_API_KEY"
+    ),  # Replace with your actual API key from Mailgun
+    "MAILGUN_SENDER_DOMAIN": config(
+        "MAILGUN_SENDER_DOMAIN"
+    ),  # Your Mailgun verified domain
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -143,7 +155,10 @@ LOGIN_REDIRECT_URL = "home"
 
 LOGOUT_REDIRECT_URL = "home"
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Email settings
+EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"  # Use Anymail's Mailgun backend
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
